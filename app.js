@@ -1,4 +1,4 @@
-// Example airport and destination data
+// Main airports for Europe and Latin America
 const europeAirports = [
   { code: "LHR", name: "London Heathrow" },
   { code: "CDG", name: "Paris Charles de Gaulle" },
@@ -25,18 +25,29 @@ const latamAirports = [
   { code: "UIO", name: "Quito Mariscal Sucre" }
 ];
 
-const destinations = [
-  { code: "JFK", name: "New York" },
-  { code: "MIA", name: "Miami" },
-  { code: "CUN", name: "Cancun" },
-  { code: "MAD", name: "Madrid" },
-  { code: "CDG", name: "Paris" },
-  { code: "FCO", name: "Rome" },
-  { code: "LIS", name: "Lisbon" },
-  { code: "LHR", name: "London" },
-  { code: "BCN", name: "Barcelona" },
-  { code: "EZE", name: "Buenos Aires" }
-];
+// Mock: Non-stop destinations for each airport (replace with real API call)
+const nonStopDestinations = {
+  "LHR": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN", "EZE", "GRU", "SCL"],
+  "CDG": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN", "EZE", "GRU"],
+  "FRA": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN"],
+  "AMS": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS"],
+  "MAD": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN", "EZE", "GRU", "SCL"],
+  "FCO": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN"],
+  "ZRH": ["JFK", "MIA", "MAD", "CDG", "FCO"],
+  "IST": ["JFK", "MIA", "MAD", "CDG"],
+  "VIE": ["JFK", "MIA", "MAD"],
+  "BCN": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN"],
+  "MEX": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN", "EZE", "GRU", "SCL"],
+  "GRU": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN", "EZE", "GRU", "SCL"],
+  "BOG": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN"],
+  "LIM": ["JFK", "MIA", "MAD", "CDG", "FCO"],
+  "EZE": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN", "EZE"],
+  "SCL": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN"],
+  "GIG": ["JFK", "MIA", "MAD", "CDG", "FCO", "LIS", "BCN"],
+  "PTY": ["JFK", "MIA", "MAD", "CDG", "FCO"],
+  "MVD": ["JFK", "MIA", "MAD", "CDG"],
+  "UIO": ["JFK", "MIA", "MAD"]
+};
 
 // Populate dropdowns
 function populateSelect(id, options) {
@@ -48,39 +59,71 @@ function populateSelect(id, options) {
     select.appendChild(option);
   });
 }
+populateSelect('origin-eu', europeAirports);
+populateSelect('origin-la', latamAirports);
 
-populateSelect('origin1', europeAirports);
-populateSelect('origin2', latamAirports);
-populateSelect('destination', destinations);
-
-// Example function to fetch prices (replace with real API call)
-async function fetchFlightPrice(origin, destination) {
-  // Replace with real API call to Google Flights API via SearchAPI or SerpAPI
-  // Example: https://www.searchapi.io/api/v1/search?engine=google_flights&departure_id=origin&arrival_id=destination&flight_type=one_way&outbound_date=2025-07-10
-  // For demo, return a random price
-  return Math.floor(Math.random() * 800) + 100;
+// Mock: Fetch price for a round-trip non-stop flight (replace with real API call)
+async function fetchPrice(origin, dest, startDate, endDate) {
+  // Replace with real API call to Google Flights API, Amadeus, or Passabot/Apify[3][6][11]
+  // Must filter for non-stop flights only
+  // Example: fetch(`https://api.example.com/flights?origin=${origin}&dest=${dest}&start=${startDate}&end=${endDate}&nonstop=true`)
+  // For demonstration, return a random price or null if not available
+  return Math.random() > 0.1 ? Math.floor(Math.random() * 700) + 150 : null;
 }
 
 document.getElementById('flight-form').addEventListener('submit', async function(e) {
   e.preventDefault();
-  const origin1 = document.getElementById('origin1').value;
-  const origin2 = document.getElementById('origin2').value;
-  const destination = document.getElementById('destination').value;
+  const originEU = document.getElementById('origin-eu').value;
+  const originLA = document.getElementById('origin-la').value;
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
 
-  const [price1, price2] = await Promise.all([
-    fetchFlightPrice(origin1, destination),
-    fetchFlightPrice(origin2, destination)
-  ]);
+  // Find common non-stop destinations
+  const euDest = nonStopDestinations[originEU] || [];
+  const laDest = nonStopDestinations[originLA] || [];
+  const commonDest = euDest.filter(dest => laDest.includes(dest));
 
-  const total = price1 + price2;
+  if (commonDest.length === 0) {
+    document.getElementById('results').innerHTML = "<p>No common non-stop destinations found.</p>";
+    return;
+  }
 
-  document.getElementById('results').innerHTML = `
-    <h2>Price Comparison</h2>
+  // Fetch prices for each destination
+  const results = [];
+  for (let dest of commonDest) {
+    const [priceEU, priceLA] = await Promise.all([
+      fetchPrice(originEU, dest, startDate, endDate),
+      fetchPrice(originLA, dest, startDate, endDate)
+    ]);
+    if (priceEU && priceLA) {
+      results.push({ dest, priceEU, priceLA, sum: priceEU + priceLA });
+    }
+  }
+
+  // Sort by total price
+  results.sort((a, b) => a.sum - b.sum);
+
+  // Output table
+  let html = `
+    <h2>Common Non-Stop Destinations</h2>
     <table>
-      <tr><th>Origin</th><th>Destination</th><th>Price (USD)</th></tr>
-      <tr><td>${origin1}</td><td>${destination}</td><td>$${price1}</td></tr>
-      <tr><td>${origin2}</td><td>${destination}</td><td>$${price2}</td></tr>
-      <tr><td colspan="2"><strong>Total</strong></td><td><strong>$${total}</strong></td></tr>
-    </table>
+      <tr>
+        <th>Destination</th>
+        <th>Price from ${originEU}</th>
+        <th>Price from ${originLA}</th>
+        <th>Total Price</th>
+      </tr>
   `;
+  for (let row of results) {
+    html += `
+      <tr>
+        <td>${row.dest}</td>
+        <td>$${row.priceEU}</td>
+        <td>$${row.priceLA}</td>
+        <td><strong>$${row.sum}</strong></td>
+      </tr>
+    `;
+  }
+  html += "</table>";
+  document.getElementById('results').innerHTML = html;
 });

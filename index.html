@@ -2,19 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Multi-Origin Flight Price Comparison</title>
+  <title>Multi-Origin Non-Stop Flight Price Finder</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Multi-Origin Flight Price Comparison</h1>
+  <h1>Find Common Non-Stop Destinations and Compare Prices</h1>
   <form id="flight-form">
-    <label for="origin1">Origin 1 (Europe):</label>
-    <select id="origin1"></select>
-    <label for="origin2">Origin 2 (Latin America):</label>
-    <select id="origin2"></select>
-    <label for="destination">Destination:</label>
-    <select id="destination"></select>
-    <button type="submit">Compare Prices</button>
+    <label for="origin-eu">Origin (Europe):</label>
+    <select id="origin-eu"></select>
+    <label for="origin-la">Origin (Latin America):</label>
+    <select id="origin-la"></select>
+    <label for="start-date">Start Date:</label>
+    <input type="date" id="start-date" required>
+    <label for="end-date">End Date:</label>
+    <input type="date" id="end-date" required>
+    <button type="submit">Search</button>
   </form>
   <div id="results"></div>
   <script src="app.js"></script>

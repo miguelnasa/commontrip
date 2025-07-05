@@ -27,7 +27,7 @@ label {
   margin: 10px 0 5px 0;
 }
 
-select, button {
+select, input[type="date"], button {
   width: 100%;
   padding: 8px;
   margin-bottom: 15px;
@@ -48,7 +48,7 @@ button:hover {
 }
 
 #results {
-  max-width: 600px;
+  max-width: 900px;
   margin: 20px auto;
   background: #fff;
   padding: 20px;
