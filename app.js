@@ -64,9 +64,8 @@ populateSelect('origin-la', latamAirports);
 
 // Mock: Fetch price for a round-trip non-stop flight (replace with real API call)
 async function fetchPrice(origin, dest, startDate, endDate) {
-  // Replace with real API call to Google Flights API, Amadeus, or Passabot/Apify[3][6][11]
+  // Replace with real API call to Google Flights API, Amadeus, or Passabot/Apify
   // Must filter for non-stop flights only
-  // Example: fetch(`https://api.example.com/flights?origin=${origin}&dest=${dest}&start=${startDate}&end=${endDate}&nonstop=true`)
   // For demonstration, return a random price or null if not available
   return Math.random() > 0.1 ? Math.floor(Math.random() * 700) + 150 : null;
 }
@@ -105,7 +104,7 @@ document.getElementById('flight-form').addEventListener('submit', async function
 
   // Output table
   let html = `
-    <h2>Common Non-Stop Destinations</h2>
+    <h2>Best Common Non-Stop Destinations</h2>
     <table>
       <tr>
         <th>Destination</th>
