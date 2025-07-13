@@ -17,8 +17,8 @@ async function getAmadeusToken() {
   return data.access_token;
 }
 
-// Fetch destinations from Amadeus Flight Inspiration Search API
-async function fetchDestinations(origin, departureDate, returnDate) {
+// Fetch price for a round-trip from origin to destination
+async function fetchPrice(origin, destination, departureDate, returnDate) {
   if (!AMADEUS_ACCESS_TOKEN) {
     AMADEUS_ACCESS_TOKEN = await getAmadeusToken();
   }
@@ -27,7 +27,9 @@ async function fetchDestinations(origin, departureDate, returnDate) {
     headers: { Authorization: `Bearer ${AMADEUS_ACCESS_TOKEN}` }
   });
   const data = await response.json();
-  return data.data || [];
+  if (!data.data) return null;
+  const found = data.data.find(d => d.destination === destination);
+  return found ? parseFloat(found.price.total) : null;
 }
 
 // Get airport/city name from Amadeus location API (with caching)
@@ -54,81 +56,74 @@ async function fetchLocationName(iataCode) {
 
 document.getElementById('flight-form').addEventListener('submit', async function(e) {
   e.preventDefault();
+
   // Get and sanitize input
-  const originEU = document.getElementById('origin-eu').value.trim().toUpperCase();
-  const originLA = document.getElementById('origin-la').value.trim().toUpperCase();
+  const origin1 = document.getElementById('origin1').value.trim().toUpperCase();
+  const origin2 = document.getElementById('origin2').value.trim().toUpperCase();
+  const destinations = [
+    document.getElementById('destination1').value.trim().toUpperCase(),
+    document.getElementById('destination2').value.trim().toUpperCase(),
+    document.getElementById('destination3').value.trim().toUpperCase()
+  ];
   const startDate = document.getElementById('start-date').value;
   const endDate = document.getElementById('end-date').value;
 
   document.getElementById('results').innerHTML = "<p>Loading, please wait...</p>";
 
   try {
-    // Fetch up to 100 destinations for each origin
-    let [euDestList, laDestList] = await Promise.all([
-      fetchDestinations(originEU, startDate, endDate),
-      fetchDestinations(originLA, startDate, endDate)
-    ]);
-
-    // Build maps for quick lookup
-    let euMap = {};
-    euDestList.forEach(d => { euMap[d.destination] = d; });
-    let laMap = {};
-    laDestList.forEach(d => { laMap[d.destination] = d; });
-
-    // Find common destinations
-    let common = Object.keys(euMap).filter(dest => laMap[dest]);
-    if (common.length === 0) {
-      document.getElementById('results').innerHTML = "<p>No common destinations found.</p>";
-      return;
-    }
-
-    // For each common destination, get prices and names
+    // Fetch prices for each origin-destination pair
     let results = [];
-    for (let dest of common) {
-      const euPrice = euMap[dest].price.total ? parseFloat(euMap[dest].price.total) : null;
-      const laPrice = laMap[dest].price.total ? parseFloat(laMap[dest].price.total) : null;
-      if (euPrice && laPrice) {
-        const destName = await fetchLocationName(dest);
+    for (let dest of destinations) {
+      const [price1, price2, destName] = await Promise.all([
+        fetchPrice(origin1, dest, startDate, endDate),
+        fetchPrice(origin2, dest, startDate, endDate),
+        fetchLocationName(dest)
+      ]);
+      if (price1 && price2) {
         results.push({
           dest: destName,
           destCode: dest,
-          priceEU: euPrice,
-          priceLA: laPrice,
-          sum: euPrice + laPrice,
-          linkEU: `https://www.google.com/flights?hl=en#flt=${originEU}.${dest}.${startDate}*${dest}.${originEU}.${endDate}`,
-          linkLA: `https://www.google.com/flights?hl=en#flt=${originLA}.${dest}.${startDate}*${dest}.${originLA}.${endDate}`
+          price1,
+          price2,
+          sum: price1 + price2,
+          link1: `https://www.google.com/flights?hl=en#flt=${origin1}.${dest}.${startDate}*${dest}.${origin1}.${endDate}`,
+          link2: `https://www.google.com/flights?hl=en#flt=${origin2}.${dest}.${startDate}*${dest}.${origin2}.${endDate}`
         });
       }
     }
 
-    // Sort by total price and get 10 cheapest
+    // Sort by total price
     results.sort((a, b) => a.sum - b.sum);
-    const top10 = results.slice(0, 10);
+
+    if (results.length === 0) {
+      document.getElementById('results').innerHTML = "<p>No results found for the given origins and destinations.</p>";
+      return;
+    }
 
     // Output table
     let html = `
-      <h2>10 Cheapest Common Destinations</h2>
+      <h2>Price Comparison for Selected Destinations</h2>
       <table>
         <tr>
           <th>Destination</th>
-          <th>Price from ${originEU}</th>
-          <th>Price from ${originLA}</th>
+          <th>Price from ${origin1}</th>
+          <th>Price from ${origin2}</th>
           <th>Total Price</th>
         </tr>
     `;
-    for (let row of top10) {
+    for (let row of results) {
       html += `
         <tr>
           <td>${row.dest}</td>
           <td>
-            $${row.priceEU.toFixed(2)}
+            $${row.price1.toFixed(2)}
             <br>
-            <a href="${row.linkEU}" target="_blank">View Ticket</a>
+            <a href="${row.link1}" target="_blank">View Ticket</a>
           </td>
           <td>
-            $${row.priceLA.toFixed(2)}
+            $${row.price2.toFixed(2)}
             <br>
-            <a href="${row.linkLA}" target="_blank">View Ticket</a>
+            <a href="${row.link2}" target="_blank">View Ticket</a>
           </td>
           <td><strong>$${row.sum.toFixed(2)}</strong></td>
         </tr>

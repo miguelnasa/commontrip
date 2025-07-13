@@ -2,16 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Multi-Origin Cheapest Common Destinations</title>
+  <title>Multi-Origin to Multi-Destination Price Comparison</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Find the Cheapest Common Destinations</h1>
+  <h1>Compare Prices for Two Origins and Three Destinations</h1>
   <form id="flight-form">
-    <label for="origin-eu">Origin 1 (IATA code):</label>
-    <input type="text" id="origin-eu" placeholder="e.g. LHR" maxlength="3" required>
-    <label for="origin-la">Origin 2 (IATA code):</label>
-    <input type="text" id="origin-la" placeholder="e.g. MEX" maxlength="3" required>
+    <label for="origin1">Origin 1 (IATA code):</label>
+    <input type="text" id="origin1" placeholder="e.g. LHR" maxlength="3" required>
+    <label for="origin2">Origin 2 (IATA code):</label>
+    <input type="text" id="origin2" placeholder="e.g. MEX" maxlength="3" required>
+    <label for="destination1">Destination 1 (IATA code):</label>
+    <input type="text" id="destination1" placeholder="e.g. JFK" maxlength="3" required>
+    <label for="destination2">Destination 2 (IATA code):</label>
+    <input type="text" id="destination2" placeholder="e.g. CDG" maxlength="3" required>
+    <label for="destination3">Destination 3 (IATA code):</label>
+    <input type="text" id="destination3" placeholder="e.g. SCL" maxlength="3" required>
     <label for="start-date">Start Date:</label>
     <input type="date" id="start-date" required>
     <label for="end-date">End Date:</label>
