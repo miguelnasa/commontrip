@@ -4,46 +4,6 @@ const AMADEUS_CLIENT_ID = 'eGgZXXMawgAd40jNU6mAh3oNSANeGuyK';
 const AMADEUS_CLIENT_SECRET = 'HPAmolWdnuvNzy2N';
 let AMADEUS_ACCESS_TOKEN = null;
 
-// Main airports for Europe and Latin America
-const europeAirports = [
-  { code: "LHR", name: "London Heathrow" },
-  { code: "CDG", name: "Paris Charles de Gaulle" },
-  { code: "FRA", name: "Frankfurt" },
-  { code: "AMS", name: "Amsterdam Schiphol" },
-  { code: "MAD", name: "Madrid Barajas" },
-  { code: "FCO", name: "Rome Fiumicino" },
-  { code: "ZRH", name: "Zurich" },
-  { code: "IST", name: "Istanbul" },
-  { code: "VIE", name: "Vienna" },
-  { code: "BCN", name: "Barcelona" }
-];
-
-const latamAirports = [
-  { code: "MEX", name: "Mexico City" },
-  { code: "GRU", name: "São Paulo Guarulhos" },
-  { code: "BOG", name: "Bogotá El Dorado" },
-  { code: "LIM", name: "Lima Jorge Chávez" },
-  { code: "EZE", name: "Buenos Aires Ezeiza" },
-  { code: "SCL", name: "Santiago de Chile" },
-  { code: "GIG", name: "Rio de Janeiro Galeão" },
-  { code: "PTY", name: "Panama City Tocumen" },
-  { code: "MVD", name: "Montevideo Carrasco" },
-  { code: "UIO", name: "Quito Mariscal Sucre" }
-];
-
-// Populate dropdowns
-function populateSelect(id, options) {
-  const select = document.getElementById(id);
-  options.forEach(opt => {
-    const option = document.createElement('option');
-    option.value = opt.code;
-    option.textContent = `${opt.name} (${opt.code})`;
-    select.appendChild(option);
-  });
-}
-populateSelect('origin-eu', europeAirports);
-populateSelect('origin-la', latamAirports);
-
 // ====== AMADEUS API HELPERS ======
 
 // Get Amadeus access token
@@ -94,8 +54,9 @@ async function fetchLocationName(iataCode) {
 
 document.getElementById('flight-form').addEventListener('submit', async function(e) {
   e.preventDefault();
-  const originEU = document.getElementById('origin-eu').value;
-  const originLA = document.getElementById('origin-la').value;
+  // Get and sanitize input
+  const originEU = document.getElementById('origin-eu').value.trim().toUpperCase();
+  const originLA = document.getElementById('origin-la').value.trim().toUpperCase();
   const startDate = document.getElementById('start-date').value;
   const endDate = document.getElementById('end-date').value;
 

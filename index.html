@@ -8,10 +8,10 @@
 <body>
   <h1>Find the Cheapest Common Destinations</h1>
   <form id="flight-form">
-    <label for="origin-eu">Origin (Europe):</label>
-    <select id="origin-eu"></select>
-    <label for="origin-la">Origin (Latin America):</label>
-    <select id="origin-la"></select>
+    <label for="origin-eu">Origin 1 (IATA code):</label>
+    <input type="text" id="origin-eu" placeholder="e.g. LHR" maxlength="3" required>
+    <label for="origin-la">Origin 2 (IATA code):</label>
+    <input type="text" id="origin-la" placeholder="e.g. MEX" maxlength="3" required>
     <label for="start-date">Start Date:</label>
     <input type="date" id="start-date" required>
     <label for="end-date">End Date:</label>
